@@ -1,0 +1,191 @@
+@startuml
+title RentaMovil
+top to bottom direction
+skinparam classAttributeIconSize 0
+hide empty members
+class Car {
+  - passengers: int
+  - automatic: boolean
+  + Car(plate: String, model: String, brand: String, dailyPrice: double, passengers: int, automatic: boolean)
+  + getCharge(days: int): double
+  + licenseValidation(licences: Set<String>): boolean
+  + getMaintenanceThreshold(): int
+  + getExtraInfo(): String
+  + getCategory(): String
+}
+class CargoVan {
+  - capacityTons: double
+  + CargoVan(plate: String, model: String, brand: String, dailyPrice: double, capacityTons: double)
+  + getCharge(days: int): double
+  + licenseValidation(licences: Set<String>): boolean
+  + getMaintenanceThreshold(): int
+  + getExtraInfo(): String
+  + getCategory(): String
+}
+class Controller {
+  - customers: ArrayList<Customer>
+  - vehicles: ArrayList<Vehicle>
+  - rentals: ArrayList<Rental>
+  - rentalsCounter: int
+  + addCustomer(customer: Customer): void
+  + addVehicle(vehicle: Vehicle): void
+  + findCustomer(id: String): Customer
+  + findVehicle(plate: String): Vehicle
+  + getCustomers(): ArrayList<Customer>
+  + getVehicles(): ArrayList<Vehicle>
+  + getActiveRentals(): ArrayList<Rental>
+  + getCustomerHistory(id: String): ArrayList<Rental>
+  - requireCustomer(id: String): Customer
+  - requireVehicle(plate: String): Vehicle
+  + getRentalObstacles(plate: String, id: String): ArrayList<String>
+  + newQuote(plate: String, days: int, id: String): String
+  + newRent(plate: String, days: int, id: String): Rental
+  + returnVehicle(plate: String): void
+  + finishMaintenance(plate: String): void
+  ~ addHistoricalRental(plate: String, days: int, id: String): void
+  + getCustomerTotalPaid(id: String): double
+  + getTotalDiscounts(): double
+  + getIncomeReport(): String
+  + getFleetReport(): String
+}
+class CorporateCustomer {
+  - companyName: String
+  - contactName: String
+  + CorporateCustomer(id: String, name: String, licences: Set<String>, companyName: String, contactName: String)
+  + getDiscount(subtotal: double, previousConfirmedRentals: int): double
+  + getActiveRentalLimit(): int
+  + toString(): String
+}
+abstract class Customer {
+  - id: String
+  - name: String
+  - licences: Set<String>
+  # Customer(id: String, name: String, licences: Set<String>)
+  + getId(): String
+  + getName(): String
+  + getLicences(): Set<String>
+  + {abstract} getDiscount(subtotal: double, previousConfirmedRentals: int): double
+  + {abstract} getActiveRentalLimit(): int
+  + toString(): String
+}
+class DemoData {
+  + {static} load(controller: Controller): void
+}
+class IndividualCustomer {
+  + IndividualCustomer(id: String, name: String, licences: Set<String>)
+  + getDiscount(subtotal: double, previousConfirmedRentals: int): double
+  + getActiveRentalLimit(): int
+}
+class Main {
+  + {static} main(args: String[]): void
+  - {static} quoteOrRent(view: View, controller: Controller, rent: boolean): void
+  - {static} registerVehicle(view: View, controller: Controller): void
+  - {static} registerCustomer(view: View, controller: Controller): void
+}
+class Minibus {
+  - passengers: int
+  - withDriver: boolean
+  + Minibus(plate: String, model: String, brand: String, dailyPrice: double, passengers: int, withDriver: boolean)
+  + getCharge(days: int): double
+  + licenseValidation(licences: Set<String>): boolean
+  + getMaintenanceThreshold(): int
+  + getExtraInfo(): String
+  + getCategory(): String
+}
+class Motorcycle {
+  - engineCc: int
+  + Motorcycle(plate: String, model: String, brand: String, dailyPrice: double, engineCc: int)
+  + getCharge(days: int): double
+  + licenseValidation(licences: Set<String>): boolean
+  + getMaintenanceThreshold(): int
+  + getExtraInfo(): String
+  + getCategory(): String
+}
+class Rental {
+  - number: int
+  - customer: Customer
+  - vehicle: Vehicle
+  - days: int
+  - subtotal: double
+  - discount: double
+  - total: double
+  - active: boolean
+  - historical: boolean
+  + Rental(number: int, customer: Customer, vehicle: Vehicle, days: int, subtotal: double, discount: double)
+  ~ markHistorical(): void
+  + isHistorical(): boolean
+  + getNumber(): int
+  + getCustomer(): Customer
+  + getVehicle(): Vehicle
+  + getDays(): int
+  + getSubtotal(): double
+  + getDiscount(): double
+  + getTotal(): double
+  + isActive(): boolean
+  + finishRental(): void
+  + toString(): String
+}
+abstract class Vehicle {
+  - plate: String
+  - model: String
+  - brand: String
+  # dailyPrice: double
+  - rented: boolean
+  - outOfService: boolean
+  - totalRentedDays: int
+  # extraInfo: ArrayList<String>
+  # Vehicle(plate: String, model: String, brand: String, dailyPrice: double)
+  + getPlate(): String
+  + getDailyPrice(): double
+  + isRented(): boolean
+  + isOutOfService(): boolean
+  + getTotalRentedDays(): int
+  + availability(): boolean
+  + getState(): String
+  + markRented(): void
+  + registerReturn(days: int): void
+  + finishMaintenance(): void
+  ~ initializeRentedDays(days: int): void
+  + {abstract} getCharge(days: int): double
+  + {abstract} licenseValidation(licences: Set<String>): boolean
+  + {abstract} getMaintenanceThreshold(): int
+  + {abstract} getExtraInfo(): String
+  + {abstract} getCategory(): String
+  + toString(): String
+}
+class View {
+  - sc: Scanner
+  + showMessage(message: String): void
+  + readString(message: String): String
+  + readInt(message: String): int
+  + readDouble(message: String): double
+  + confirm(message: String): boolean
+  + showMenu(): int
+}
+Vehicle <|-- Car
+Vehicle <|-- Motorcycle
+Vehicle <|-- CargoVan
+Vehicle <|-- Minibus
+Customer <|-- IndividualCustomer
+Customer <|-- CorporateCustomer
+Controller "1" o-- "0..*" Vehicle : flota
+Controller "1" o-- "0..*" Customer : clientes
+Controller "1" o-- "0..*" Rental : historial
+Rental "0..*" --> "1" Customer
+Rental "0..*" --> "1" Vehicle
+Main ..> View
+Main ..> Controller
+Main ..> DemoData
+DemoData ..> Controller
+note right of Rental
+  historical: precarga de un período anterior.
+  Cuenta para descuento e historial,
+  no para ingresos/descuentos de sesión.
+end note
+note right of Vehicle
+  Cobro, licencia, umbral y descripción
+  usan métodos sobrescritos.
+  Los estados cambian mediante operaciones
+  que validan sus precondiciones.
+end note
+@enduml
